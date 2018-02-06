@@ -5,6 +5,12 @@ Created on Thu Feb 01 14:39:12 2018
 @author: John Doe
 """
 import math as ma
+import numpy as np
+import scipy as sc
+import scipy.constants
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
 earthmass=5.972e24 #kg
 earthrad=6.371e6 #meters
 univgrav=raw_input("Please input the Universal Gravitational Constant. (The code will use this if you leave this prompt blank: 6.67408x10^-11 m^3 kg^-1 s^-2): ")
@@ -13,7 +19,7 @@ initangle=float(raw_input("Please input the angle at which the projectile is lau
 initheight=float(raw_input("Please input the initial height from which the projectile is launched: "))
 timestep=float(raw_input("Please choose a timestep to simulate in seconds (Don't include units): "))
 if univgrav=="":
-    univgrav=6.67408e-11#Automatically uses this if nothing is inputted
+    univgrav= scipy.constants.gravitational_constant #Automatically uses this if nothing is inputted
 else:
     univgrav=float(univgrav)
 initrad=initangle*ma.pi/180 #angle in radians
@@ -24,16 +30,19 @@ def accel(gravconstant,height,earthmass,earthrad):
     
 """
 -----------------------
-This is a version without using arrays.
+This is a version WITH arrays.
 -----------------------
 """
+
 velx=initvel*ma.cos(initrad)
 vely=initvel*ma.sin(initrad)
 velocitylisty=[vely]
 positionlistx=[0]
 heightlist=[initheight]
+
+
 timelist=[0]
-t=1
+t=0
 pos=0 #x position variable
 curh=initheight #Setting the current height value
 
@@ -105,6 +114,9 @@ q=heightlist.index(highest)
 print("The highest point the projectile reaches is "+str(highest)+" meters.")
 print("The projectile reaches this point at t= "+str(timelist[q])+" seconds.")
 print("The flight time is "+str(timelist[-1])+" seconds.")
+plt.plot(positionlistx,heightlist)
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
 #print(typer)
 
     
