@@ -34,11 +34,12 @@ This is a version WITH arrays.
 -----------------------
 """
 
-velx=initvel*ma.cos(initrad)
-vely=initvel*ma.sin(initrad)
-velocitylisty=[vely]
-positionlistx=[0]
-heightlist=[initheight]
+velx=initvel*ma.cos(initrad) #Initial x velocity
+vely=initvel*ma.sin(initrad) #Initial y velocity
+velocitylisty=[vely] #starting a velocity list
+positionlistx=[0] #starting a position list in x
+heightlist=[initheight] #starting a position list in y
+#Make array that is curh and vely as a single variable
 
 
 timelist=[0]
@@ -46,64 +47,70 @@ t=0
 pos=0 #x position variable
 curh=initheight #Setting the current height value
 
-while curh>0:
+while round(curh,6)>=0:
     #-------------------------------------
     
     typer="Explicit Euler Method"
-    curh=curh+timestep*vely
-    vely=vely+timestep*accel(univgrav,curh,earthmass,earthrad)
+    accy=accel(univgrav,curh,earthmass,earthrad)
+    zmat=np.array([curh,vely])
+    zmatprime=np.array([vely,accy])
+    zmat=zmat+timestep*zmatprime
     timelist.append(t*timestep)
     
     #-------------------------------------
-    """#Inaccurate currently?
+    #Runge-Kutta 2 method, seems to work
+    """
     typer="Runge-Kutta 2nd order"
-    acc=accel(univgrav,curh,earthmass,earthrad)
-    zstar1=curh+timestep*(1/2.0)*vely
-    zstar2=vely+timestep*(1/2.0)*acc
-    ztwo1=timestep*vely
-    ztwo2=timestep*acc
-    znew1=zstar1+(1/2.0)*ztwo1
-    znew2=zstar2+(1/2.0)*ztwo2
-    k21=timestep*znew2
-    k22=timestep*accel(univgrav,znew1,earthmass,earthrad)
-    curh=curh+k21
-    vely=vely+k22
+    accy=accel(univgrav,curh,earthmass,earthrad)
+    zmat=np.array([curh,vely])
+    zmatprime=np.array([vely,accy])
+    k1=timestep*(np.array([zmat[1],accy]))
+    k2=timestep*(np.array([zmat[1]+(1/2.0)*k1[0],zmatprime[1]+(1/2.0)*k1[1]]))
+    zmat=zmat+k2
     timelist.append(t*timestep)
     """
+    
     #-------------------------------------
     """#Not accurate currently?
-    typer="Runge-Kutta 4th order" #This looks a lot nicer with arrays, alright?
-    acc4=accel(univgrav,curh,earthmass,earthrad)
-    fourk11=timestep*vely
-    fourk12=timestep*acc4
+    typer="Runge-Kutta 4th order"
+    accy=accel(univgrav,curh,earthmass,earthrad)
+    zmat=np.array([curh,vely])
+    zmatprime=np.array([vely,accy])
+    fourk1=timestep*zmatprime
     
-    kstar1=curh+timestep*vely
-    kstar2=vely+timestep*acc4
-    knew1=kstar1+fourk11
-    knew2=kstar2+fourk12
-    fourk21=timestep*knew2
-    fourk22=timestep*accel(univgrav,knew1,earthmass,earthrad)
+    kstar=zmat+timestep*zmatprime
+    knew=kstar+fourk1
+    fourk2=timestep*(np.array([knew[1],accel(univgrav,knew[0],earthmass,earthrad)]))
     
-    knewer1=kstar1+(1/2.0)*fourk21
-    knewer2=kstar2+(1/2.0)*fourk22
-    fourk31=timestep*knewer2
-    fourk32=timestep*accel(univgrav,knewer1,earthmass,earthrad)
+    knewer=kstar+(1/2.0)*fourk2
+    fourk3=timestep*(np.array([knewer[1],accel(univgrav,knewer[0],earthmass,earthrad)]))
     
-    kstar41=curh+timestep*vely
-    kstar42=vely+timestep*acc4
-    knewest1=kstar41+fourk31
-    knewest2=kstar42+fourk32
-    fourk41=timestep*knewest2
-    fourk42=timestep*accel(univgrav,knewest1,earthmass,earthrad)
-    curh=curh+(1/6.0)*fourk11+(1/3.0)*fourk21+(1/3.0)*fourk31+(1/6.0)*fourk41
-    vely=vely+(1/6.0)*fourk12+(1/3.0)*fourk22+(1/3.0)*fourk32+(1/6.0)*fourk42
+    kstar4=zmat+timestep*zmatprime
+    knewest=kstar+fourk3
+    fourk4=timestep*(np.array([knewest[1],accel(univgrav,knewest[0],earthmass,earthrad)]))
+    zmat=zmat+(1/6.0)*fourk1+(1/3.0)*fourk2+(1/3.0)*fourk3+(1/6.0)*fourk4
+    timelist.append(t*timestep)
+    """
+    
+    """#Rewrite of RK4 function. . .is it accurate?
+    typer="Runge-Kutta 4th order"
+    accy=accel(univgrav,curh,earthmass,earthrad)
+    zmat=np.array([curh,vely])
+    zmatprime=np.array([vely,accy])
+    k1=timestep*(np.array([zmat[1],accy]))
+    k2=timestep*(np.array([zmat[1]+(1/2.0)*k1[0],zmatprime[1]+(1/2.0)*k1[1]]))
+    k3=timestep*(np.array([zmat[1]+(1/2.0)*k2[0],zmatprime[1]+(1/2.0)*k2[1]]))
+    k4=timestep*(np.array([zmat[1]+k3[0],zmatprime[1]+k3[1]]))
+    zmat=zmat+(1/6.0)*k1+(1/3.0)*k2+(1/3.0)*k3+(1/6.0)*k4
     timelist.append(t*timestep)
     """
     #----------------------------------
-    velocitylisty.append(vely)
+    velocitylisty.append(zmat[1])
+    heightlist.append(zmat[0])
+    curh=heightlist[-1]
+    vely=velocitylisty[-1]
     pos=pos+timestep*velx #This part is less likely to have error problems since it's linear, so I'm sticking with just an Explicit Euler method.
     positionlistx.append(pos)
-    heightlist.append(curh)
     t=t+1
     
     
@@ -117,7 +124,7 @@ print("The flight time is "+str(timelist[-1])+" seconds.")
 plt.plot(positionlistx,heightlist)
 plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
-#print(typer)
+print(typer)
 
     
     
