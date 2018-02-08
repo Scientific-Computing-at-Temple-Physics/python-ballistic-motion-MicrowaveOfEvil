@@ -123,6 +123,8 @@ print("The projectile reaches this point at t= "+str(timelist[q])+" seconds.")
 print("The flight time is "+str(timelist[-1])+" seconds.")
 plt.plot(positionlistx,heightlist)
 plt.gca().set_aspect('equal', adjustable='box')
+plt.xlabel('Horizontal position (meters)')
+plt.ylabel('Vertical position (meters).')
 plt.show()
 print(typer)
 
